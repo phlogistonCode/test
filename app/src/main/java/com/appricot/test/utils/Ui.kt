@@ -3,6 +3,9 @@ package com.appricot.test.utils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.activity_main.*
+import java.text.SimpleDateFormat
+import java.util.*
+
 
 fun AppCompatActivity.changeFragment(hideFragment: Fragment, showFragment: Fragment) {
     supportFragmentManager
@@ -13,11 +16,13 @@ fun AppCompatActivity.changeFragment(hideFragment: Fragment, showFragment: Fragm
 }
 
 fun AppCompatActivity.addFragment(fragment: Fragment) {
-    supportFragmentManager
-        .beginTransaction()
-        .add(fragment_container.id, fragment, fragment.javaClass.simpleName)
-        .hide(fragment)
-        .commit()
+
+        supportFragmentManager
+            .beginTransaction()
+            .add(fragment_container.id, fragment, fragment.javaClass.simpleName)
+            .hide(fragment)
+            .commit()
+
 }
 
 fun AppCompatActivity.hideFragment(fragment: Fragment) {
@@ -32,4 +37,22 @@ fun AppCompatActivity.showFragment(fragment: Fragment) {
         .beginTransaction()
         .show(fragment)
         .commit()
+}
+
+fun Long.normalizeTime(): String? {
+
+    val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.ROOT)
+    val calendar = Calendar.getInstance()
+
+    calendar.timeInMillis += this
+    return formatter.format(calendar.time)
+}
+
+fun String.translateStatus(): String? {
+    return when(this) {
+        "open" -> "открыта"
+        "closed" -> "закрыта"
+        "in_progress" -> "занята"
+        else -> this
+    }
 }

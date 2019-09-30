@@ -16,8 +16,4 @@ class ViewHolderList(itemView: View): RecyclerView.ViewHolder(itemView) {
         tvLocation = itemView.findViewById(R.id.text_location_request)
         tvStatus = itemView.findViewById(R.id.text_status_request)
     }
-
-    fun setOnHolderClickListener(clickListener: View.OnClickListener?) {
-        itemView.setOnClickListener(clickListener)
-    }
 }

@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">test</string>
+
+    <string-array name="sortList">
+        <item>Все</item>
+        <item>Открытые</item>
+        <item>Занятые</item>
+        <item>Закрытые</item>
+    </string-array>
 </resources>

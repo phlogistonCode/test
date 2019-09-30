@@ -5,12 +5,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.appricot.test.R.layout
 import com.appricot.test.api.GlabstoreApi
 import com.appricot.test.api.Request
 import com.appricot.test.list.adapter.AdapterRecycleViewList
 import com.appricot.test.list.models.RequestModel
+import com.appricot.test.utils.normalizeTime
+import com.appricot.test.utils.translateStatus
 import dagger.android.support.DaggerFragment
 import kotlinx.android.synthetic.main.list_fragment.*
 import kotlinx.coroutines.Dispatchers
@@ -18,16 +21,34 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 class ListFragment @Inject constructor() : DaggerFragment() {
 
     @Inject
     lateinit var service: GlabstoreApi
 
-    private var values: MutableList<RequestModel> = mutableListOf()
-    private var mAdapter: AdapterRecycleViewList? = null
+    private var adapterRecView: AdapterRecycleViewList? = null
 
-    private val onListClickListener = View.OnClickListener {
+    private var sortType: Int = 1
 
+    private val onItemClickListener = View.OnClickListener {
+
+    }
+
+    private val onItemSpinnerSelectedListener = object : AdapterView.OnItemSelectedListener {
+        override fun onItemSelected(
+            parent: AdapterView<*>?,
+            itemSelected: View?,
+            selectedItemPosition: Int,
+            selectedId: Long
+        ) {
+            val types = resources.getStringArray(com.appricot.test.R.array.sortList)
+            adapterRecView?.filter?.filter(types[selectedItemPosition])
+            sortType = selectedItemPosition
+            Log.d("sort", sortType.toString())
+        }
+
+        override fun onNothingSelected(p0: AdapterView<*>?) {}
     }
 
     override fun onCreateView(
@@ -35,9 +56,11 @@ class ListFragment @Inject constructor() : DaggerFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        retainInstance = true
         Log.d("ListFragment", "create List")
-        loadRequests()
-        mAdapter = AdapterRecycleViewList()
+        sortType = savedInstanceState?.getInt("sort") ?: 1
+        adapterRecView = AdapterRecycleViewList()
+        loadRequests(sortType)
 
         return inflater.inflate(layout.list_fragment, container, false)
     }
@@ -46,14 +69,21 @@ class ListFragment @Inject constructor() : DaggerFragment() {
         super.onActivityCreated(savedInstanceState)
 
         rvList.layoutManager = LinearLayoutManager(activity)
-        rvList.adapter = mAdapter
+        rvList.adapter = adapterRecView
 
-        mAdapter?.setOnCheckBoxCheckedChangeListener(onListClickListener)
+        spinner.onItemSelectedListener = onItemSpinnerSelectedListener
+
+        adapterRecView?.setOnItemClickListener(onItemClickListener)
 
         Log.d("ListFragment", "after activity created")
     }
 
-    private fun loadRequests() {
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("sort", sortType)
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun loadRequests(sortType: Int) {
         GlobalScope.launch(Dispatchers.Main) {
             val requestMain: Request?
             val listRequestModel: MutableList<RequestModel> = mutableListOf()
@@ -69,18 +99,19 @@ class ListFragment @Inject constructor() : DaggerFragment() {
                                 RequestModel(
                                     id = it.id,
                                     head = it.title,
-                                    date = it.actualTime,
+                                    date = it.actual_time?.normalizeTime(),
                                     location = it.location,
-                                    status = it.status
+                                    status = it.status?.translateStatus()
                                 )
                             )
                         }
-                        mAdapter?.prependData(listRequestModel)
+                        Log.d("listRequestModel ", listRequestModel.toString())
+                        spinner.setSelection(sortType)
+                        adapterRecView?.prependData(listRequestModel.sortedWith(compareBy { it.date }))
                     }
                 } else {
                     Log.d("MainActivity ", response.errorBody().toString())
                 }
-
             } catch (e: Exception) {
             }
         }

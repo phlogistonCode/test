@@ -15,7 +15,7 @@ data class Datum(
     @Json(name = "title")
     var title: String? = null,
     @Json(name = "actual_time")
-    var actualTime: Int? = null,
+    var actual_time: Long? = null,
     @Json(name = "status")
     var status: String? = null,
     @Json(name = "location")
