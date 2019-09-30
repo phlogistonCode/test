@@ -14,7 +14,10 @@ class DataBaseModule {
     @Provides
     @Singleton
     fun provideDb(context: Context): RequestModelDao {
-        return Room.databaseBuilder(context, RequestModelDataBase::class.java, "request_model.db").build().requestModelDao()
+        return Room.databaseBuilder(context, RequestModelDataBase::class.java, "request_model.db")
+            .allowMainThreadQueries()
+            .build()
+            .requestModelDao()
     }
 
 }

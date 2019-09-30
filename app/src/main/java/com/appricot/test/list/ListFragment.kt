@@ -1,5 +1,7 @@
 package com.appricot.test.list
 
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,11 +13,11 @@ import com.appricot.test.R.layout
 import com.appricot.test.api.GlabstoreApi
 import com.appricot.test.api.Request
 import com.appricot.test.db.RequestModelDao
-import com.appricot.test.db.RequestModelDataBase
 import com.appricot.test.list.adapter.AdapterRecycleViewList
 import com.appricot.test.list.models.RequestModel
 import com.appricot.test.utils.normalizeTime
 import com.appricot.test.utils.translateStatus
+import com.google.android.material.snackbar.Snackbar
 import dagger.android.support.DaggerFragment
 import kotlinx.android.synthetic.main.list_fragment.*
 import kotlinx.coroutines.Dispatchers
@@ -35,12 +37,11 @@ class ListFragment @Inject constructor() : DaggerFragment() {
     private var adapterRecView: AdapterRecycleViewList? = null
 
     private var sortType: Int = 1
+    var sPref: SharedPreferences? = null
 
     private val onItemClickListener = View.OnClickListener {
 
     }
-
-    // TODO: https://github.com/guenodz/livedata-recyclerview-sample
 
     private val onItemSpinnerSelectedListener = object : AdapterView.OnItemSelectedListener {
         override fun onItemSelected(
@@ -52,6 +53,7 @@ class ListFragment @Inject constructor() : DaggerFragment() {
             val types = resources.getStringArray(com.appricot.test.R.array.sortList)
             adapterRecView?.filter?.filter(types[selectedItemPosition])
             sortType = selectedItemPosition
+            saveSort()
             Log.d("sort", sortType.toString())
         }
 
@@ -64,10 +66,10 @@ class ListFragment @Inject constructor() : DaggerFragment() {
         savedInstanceState: Bundle?
     ): View? {
         Log.d("ListFragment", "create List")
-        sortType = savedInstanceState?.getInt("sort") ?: 1
+        loadSort()
+
         adapterRecView = AdapterRecycleViewList()
         downloadListToDB(sortType)
-        presentListFromDB()
 
         return inflater.inflate(layout.list_fragment, container, false)
     }
@@ -85,9 +87,9 @@ class ListFragment @Inject constructor() : DaggerFragment() {
         Log.d("ListFragment", "after activity created")
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putInt("sort", sortType)
-        super.onSaveInstanceState(outState)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        saveSort()
     }
 
     private fun downloadListToDB(sortType: Int) {
@@ -100,36 +102,58 @@ class ListFragment @Inject constructor() : DaggerFragment() {
                 val response = listRequest.await()
                 if (response.isSuccessful) {
                     requestMain = response.body()
-                    if (!requestMain?.data.isNullOrEmpty()) {
-                        requestMain?.data?.forEach {
-                            listRequestModel.add(
-                                RequestModel(
-                                    id = it.id,
-                                    head = it.title,
-                                    date = it.actual_time?.normalizeTime(),
-                                    location = it.location,
-                                    status = it.status?.translateStatus()
+                    if (requestMain?.status!!) {
+                        if (!requestMain.data.isNullOrEmpty()) {
+                            requestMain.data?.forEach {
+                                listRequestModel.add(
+                                    RequestModel(
+                                        id = it.id,
+                                        head = it.title,
+                                        date = it.actual_time?.normalizeTime(),
+                                        location = it.location,
+                                        status = it.status?.translateStatus()
+                                    )
                                 )
-                            )
+                            }
+                            Log.d("listRequestModel ", listRequestModel.toString())
+                            spinner.setSelection(sortType)
+                            adapterRecView?.prependData(listRequestModel.sortedWith(compareBy { it.date }))
                         }
-                        Log.d("listRequestModel ", listRequestModel.toString())
-                        spinner.setSelection(sortType)
-                        db.deleteAll()
-                        db.insertList(listRequestModel)
-//                        adapterRecView?.prependData(listRequestModel.sortedWith(compareBy { it.date }))
+                    } else {
+//                        showSnackbarText(тут текст из поля error, которого нет)
                     }
+
                 } else {
+                    showSnackbarRetry(response.errorBody().toString())
                     Log.d("MainActivity ", response.errorBody().toString())
                 }
             } catch (e: Exception) {
+                showSnackbarRetry("Ошибка подключения!")
             }
         }
     }
 
-    private fun presentListFromDB() {
-        GlobalScope.launch(Dispatchers.Main) {
-            adapterRecView?.prependData(db.getAll())
-        }
+    private fun saveSort() {
+        sPref = activity?.getPreferences(MODE_PRIVATE)
+        val ed = sPref?.edit()
+        ed?.putInt("sort", sortType)
+        ed?.apply()
+    }
+
+    private fun loadSort() {
+        sPref = activity?.getPreferences(MODE_PRIVATE)
+        val savedSort = sPref?.getInt("sort", 1)
+        sortType = savedSort!!
+    }
+
+    private fun showSnackbarRetry(text: String) {
+        Snackbar.make(activity?.findViewById(rvList.id)!!, text, Snackbar.LENGTH_INDEFINITE)
+            .setAction("RETRY") { downloadListToDB(sortType) }
+            .show()
+    }
+
+    private fun showSnackbarText(text: String) {
+        Snackbar.make(activity?.findViewById(rvList.id)!!, text, Snackbar.LENGTH_INDEFINITE).show()
     }
 
 }

@@ -7,7 +7,7 @@ import com.appricot.test.list.models.RequestModel
 interface RequestModelDao {
 
     @Query("SELECT * FROM requestModel")
-    suspend fun getAll(): List<RequestModel>
+    fun getAll(): List<RequestModel>
 
     @Query("SELECT * FROM requestModel WHERE id = :id")
     fun getById(id: Int): RequestModel
@@ -22,9 +22,9 @@ interface RequestModelDao {
     fun delete(requestModel: RequestModel)
 
     @Query("DELETE FROM requestModel")
-    suspend fun deleteAll()
+    fun deleteAll()
 
     @Insert
-    suspend fun insertList(requestModels: List<RequestModel>)
+    fun insertList(requestModels: List<RequestModel>)
 
 }

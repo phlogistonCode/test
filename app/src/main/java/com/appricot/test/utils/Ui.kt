@@ -16,11 +16,9 @@ fun AppCompatActivity.changeFragment(hideFragment: Fragment, showFragment: Fragm
 }
 
 fun AppCompatActivity.addFragment(fragment: Fragment) {
-
         supportFragmentManager
             .beginTransaction()
-            .add(fragment_container.id, fragment, fragment.javaClass.simpleName)
-            .hide(fragment)
+            .replace(fragment_container.id, fragment, fragment.javaClass.simpleName)
             .commit()
 
 }
