@@ -15,11 +15,32 @@ fun AppCompatActivity.changeFragment(hideFragment: Fragment, showFragment: Fragm
         .commit()
 }
 
+fun AppCompatActivity.changeFragmentBackStack(fragment: Fragment) {
+    supportFragmentManager
+        .beginTransaction()
+        .replace(fragment_container.id, fragment, fragment.javaClass.simpleName)
+        .addToBackStack(fragment.javaClass.simpleName)
+        .commit()
+}
+
 fun AppCompatActivity.addFragment(fragment: Fragment) {
         supportFragmentManager
             .beginTransaction()
             .replace(fragment_container.id, fragment, fragment.javaClass.simpleName)
             .commit()
+}
+
+fun AppCompatActivity.clearBackStack() {
+    for (i in 0 until supportFragmentManager.backStackEntryCount) {
+        supportFragmentManager.popBackStack()
+    }
+}
+
+fun Fragment.addFragment(fragment: Fragment) {
+    childFragmentManager
+        .beginTransaction()
+        .add(fragment_container.id, fragment, fragment.javaClass.simpleName)
+        .commit()
 
 }
 

@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">test</string>
+    <string name="description">Описание:</string>
+    <string name="button_text">Приступить</string>
+    <string name="fio">Имя/Фамилия:</string>
 
     <string-array name="sortList">
         <item>Все</item>

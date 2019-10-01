@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.appricot.test.R
 import com.appricot.test.list.models.RequestModel
 
-class AdapterRecycleViewList : RecyclerView.Adapter<ViewHolderList>(), Filterable {
+class AdapterRecycleViewList(private val selector: Selector) : RecyclerView.Adapter<ViewHolderList>(), Filterable {
 
     private var dataSet: List<RequestModel> = ArrayList()
     private var dataSetFilterable: List<RequestModel> = ArrayList()
@@ -31,7 +31,7 @@ class AdapterRecycleViewList : RecyclerView.Adapter<ViewHolderList>(), Filterabl
         holder.tvLocation?.text = item.location
         holder.tvStatus?.text = item.status
 
-        holder.itemView.setOnClickListener(onHolderClickListener)
+        holder.itemView.setOnClickListener { selector.onItemSelected(item.id!!) }
     }
 
     override fun getFilter(): Filter {
@@ -64,10 +64,6 @@ class AdapterRecycleViewList : RecyclerView.Adapter<ViewHolderList>(), Filterabl
         }
     }
 
-    fun setOnItemClickListener(checkedChangeListener: View.OnClickListener?) {
-        onHolderClickListener = checkedChangeListener
-    }
-
     fun clearData() {
         dataSetFilterable = emptyList()
         notifyDataSetChanged()
@@ -86,4 +82,8 @@ class AdapterRecycleViewList : RecyclerView.Adapter<ViewHolderList>(), Filterabl
         notifyItemRangeInserted(previousDataSetSize, dataSet.size)
     }
 
+}
+
+interface Selector {
+    fun onItemSelected(id: Int)
 }

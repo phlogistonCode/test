@@ -1,11 +1,10 @@
 package com.appricot.test.main
 
+import android.os.Bundle
 import androidx.fragment.app.Fragment
 import com.appricot.test.details.DetailsFragment
 import com.appricot.test.list.ListFragment
-import com.appricot.test.utils.addFragment
-import com.appricot.test.utils.changeFragment
-import com.appricot.test.utils.showFragment
+import com.appricot.test.utils.*
 import javax.inject.Inject
 
 class MainPresenter @Inject constructor(
@@ -16,17 +15,23 @@ class MainPresenter @Inject constructor(
 
     private var activeFragment: Fragment = listFragment
 
-    fun toNotesFragment() {
+    fun toListFragment() {
         activity.changeFragment(activeFragment, listFragment)
         activeFragment = listFragment
     }
 
-    fun toPlanningFragment() {
-        activity.changeFragment(activeFragment, detailsFragment)
+    fun toDetailsFragment(infoToFragment: String?) {
+        if (!infoToFragment.isNullOrEmpty()) {
+            val bundle = Bundle()
+            bundle.putString("id", infoToFragment)
+            detailsFragment.arguments = bundle
+        }
+        activity.changeFragmentBackStack(detailsFragment)
         activeFragment = detailsFragment
     }
 
     fun loadFragments() {
+        activity.clearBackStack()
         activity.addFragment(listFragment)
         activity.showFragment(listFragment)
     }
