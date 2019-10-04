@@ -3,6 +3,9 @@
     <string name="description">Описание:</string>
     <string name="button_text">Приступить</string>
     <string name="fio">Имя/Фамилия:</string>
+    <string name="bad_connection">Ошибка подключения!</string>
+    <string name="retry">Переподключиться</string>
+    <string name="in_dev">Извините, данный функционал еще в разработке</string>
 
     <string-array name="sortList">
         <item>Все</item>

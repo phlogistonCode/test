@@ -6,7 +6,9 @@ data class Request(
     @Json(name = "status")
     var status: Boolean? = null,
     @Json(name = "data")
-    var data: List<Datum>? = null
+    var data: List<Datum>? = null,
+    @Json(name = "error")
+    var error: String? = null
 )
 
 data class Datum(
@@ -26,7 +28,9 @@ data class Details(
     @Json(name = "status")
     var status: Boolean? = null,
     @Json(name = "data")
-    var data: Data? = null
+    var data: Data? = null,
+    @Json(name = "error")
+    var error: String? = null
 )
 
 data class Data(

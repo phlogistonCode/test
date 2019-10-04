@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.appricot.test.R
 import com.appricot.test.api.Details
 import com.appricot.test.api.GlabstoreApi
 import com.google.android.material.snackbar.Snackbar
@@ -17,6 +16,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 import javax.inject.Inject
+
+
 
 class DetailsFragment @Inject constructor() : DaggerFragment() {
 
@@ -35,13 +36,13 @@ class DetailsFragment @Inject constructor() : DaggerFragment() {
 
         downloadDetails(id)
 
-        return inflater.inflate(R.layout.details_fragment, container, false)
+        return inflater.inflate(com.appricot.test.R.layout.details_fragment, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        empty_button.setOnClickListener { showSnackbarText("Извините, данный функционал еще в разработке") }
+        empty_button.setOnClickListener { showSnackbarText(resources.getString(com.appricot.test.R.string.in_dev)) }
     }
 
     private fun downloadDetails(id: String) {
@@ -64,7 +65,7 @@ class DetailsFragment @Inject constructor() : DaggerFragment() {
                             }
                         }
                     } else {
-//                        showSnackbarText(тут текст из поля error, которого нет)
+                        showSnackbarText(details.error!!)
                     }
 
                 } else {
@@ -72,7 +73,7 @@ class DetailsFragment @Inject constructor() : DaggerFragment() {
                     Log.d("MainActivity ", response.errorBody().toString())
                 }
             } catch (e: UnknownHostException) {
-                showSnackbarRetry("Ошибка подключения!")
+                showSnackbarRetry(resources.getString(com.appricot.test.R.string.bad_connection))
             } catch (e: Exception) {
             }
         }
@@ -80,7 +81,7 @@ class DetailsFragment @Inject constructor() : DaggerFragment() {
 
     private fun showSnackbarRetry(text: String) {
         Snackbar.make(activity!!.container, text, Snackbar.LENGTH_LONG)
-            .setAction("RETRY") { downloadDetails(id) }
+            .setAction(resources.getString(com.appricot.test.R.string.retry)) { downloadDetails(id) }
             .show()
     }
 

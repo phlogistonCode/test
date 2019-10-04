@@ -13,7 +13,6 @@ import javax.inject.Singleton
     modules = [AndroidSupportInjectionModule::class,
         TestAppModule::class,
         NetworkModule::class,
-        DataBaseModule::class,
         ActivityBindingModule::class]
 )
 interface TestAppComponent : AndroidInjector<TestApp> {

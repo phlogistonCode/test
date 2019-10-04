@@ -8,12 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.appricot.test.R
 import com.appricot.test.R.layout
 import com.appricot.test.api.GlabstoreApi
 import com.appricot.test.api.Request
-import com.appricot.test.db.RequestModelDao
 import com.appricot.test.list.adapter.AdapterRecycleViewList
 import com.appricot.test.list.adapter.Selector
 import com.appricot.test.list.models.RequestModel
@@ -35,8 +36,8 @@ class ListFragment @Inject constructor() : DaggerFragment() {
 
     @Inject
     lateinit var service: GlabstoreApi
-    @Inject
-    lateinit var db: RequestModelDao
+
+    final val SORT = "sort"
 
     private val adapterRecView = AdapterRecycleViewList(object: Selector {
         override fun onItemSelected(id: Int) {
@@ -58,7 +59,7 @@ class ListFragment @Inject constructor() : DaggerFragment() {
             adapterRecView.filter.filter(types[selectedItemPosition])
             sortType = selectedItemPosition
             saveSort()
-            Log.d("sort", sortType.toString())
+            Log.d(SORT, sortType.toString())
         }
 
         override fun onNothingSelected(p0: AdapterView<*>?) {}
@@ -79,7 +80,7 @@ class ListFragment @Inject constructor() : DaggerFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        rvList.layoutManager = LinearLayoutManager(activity)
+        rvList.layoutManager = WrapContentLinearLayoutManager(activity!!)
         rvList.adapter = adapterRecView
 
         spinner.onItemSelectedListener = onItemSpinnerSelectedListener
@@ -120,7 +121,7 @@ class ListFragment @Inject constructor() : DaggerFragment() {
                             spinner.setSelection(sortType)
                         }
                     } else {
-//                        showSnackbarText(тут текст из поля error, которого нет)
+                        showSnackbarText(requestMain.error!!)
                     }
 
                 } else {
@@ -128,7 +129,7 @@ class ListFragment @Inject constructor() : DaggerFragment() {
                     Log.d("MainActivity ", response.errorBody().toString())
                 }
             } catch (e: UnknownHostException) {
-                showSnackbarRetry("Ошибка подключения!")
+                showSnackbarRetry(resources.getString(R.string.bad_connection))
             } catch (e: Exception) {}
         }
     }
@@ -136,19 +137,19 @@ class ListFragment @Inject constructor() : DaggerFragment() {
     private fun saveSort() {
         sPref = activity?.getPreferences(MODE_PRIVATE)
         val ed = sPref?.edit()
-        ed?.putInt("sort", sortType)
+        ed?.putInt(SORT, sortType)
         ed?.apply()
     }
 
     private fun loadSort() {
         sPref = activity?.getPreferences(MODE_PRIVATE)
-        val savedSort = sPref?.getInt("sort", 1)
+        val savedSort = sPref?.getInt(SORT, 1)
         sortType = savedSort!!
     }
 
     private fun showSnackbarRetry(text: String) {
         Snackbar.make(activity!!.container, text, Snackbar.LENGTH_LONG)
-            .setAction("RETRY") { downloadListToDB(sortType) }
+            .setAction(resources.getString(R.string.retry)) { downloadListToDB(sortType) }
             .show()
     }
 
@@ -160,4 +161,16 @@ class ListFragment @Inject constructor() : DaggerFragment() {
         (activity as MainActivity).presenter.toDetailsFragment(infoToFragment)
     }
 
+}
+
+class WrapContentLinearLayoutManager(context: FragmentActivity) : LinearLayoutManager(context) {
+
+    override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State) {
+        try {
+            super.onLayoutChildren(recycler, state)
+        } catch (e: IndexOutOfBoundsException) {
+            Log.e("IndexOutOfBoundsExc", "IOOBE в RecyclerView")
+        }
+
+    }
 }
